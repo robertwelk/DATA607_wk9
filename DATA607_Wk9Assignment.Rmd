@@ -1,0 +1,52 @@
+---
+title: "DATA 607 - Week 9 Assignment"
+author: "Rob Welk"
+date: "March 31, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Problem Statement
+API's are a convienient way of obtaining data from the web without the use of scraping techniques.  In this assingment, data is pulled from the New York Times API, and is stored in R as a dataframe. The most viewed articles from the week starting March 24, 2019 will be pulled.
+
+# Packages Used
+```{r, message=FALSE}
+library(jsonlite)
+library(dplyr)
+library(magrittr)
+library(ggplot2)
+```
+
+# API data into R, 
+the jsonlite package makes it easy to get the data into R. 
+
+```{r}
+# url obtained from https://developer.nytimes.com/docs/most-popular-product/1/overview
+url <- "https://api.nytimes.com/svc/mostpopular/v2/viewed/1.json?q=&facet_filter=true&api-key=UqvZ79vy3AyYhFwEMTHCT9mpyzlC6GPp"
+
+# the fromJSON function will return a nested list - the flatten parameter will allow for a dataframe structure to be used
+NYT.mostviewed <- fromJSON(url, flatten=T) %>% data.frame()                 
+```
+
+# Tidy and Visualize
+The returned dataframe can be tidied.  Variables of interest were selected and renamed to provide a more concise table. Finally a barplot showing which sections the most viewed articles belong to is included
+
+```{r}
+#Select metadata variables of interest.  The url of the articles, section, author, title, date, and view rank are selected.
+NYT.mostviewed %<>%  select(link='results.url',
+                                  section='results.section', 
+                                  author='results.byline',
+                                  title='results.title',
+                                  published_date='results.published_date', 
+                                  view_rank='results.views')
+
+ggplot(NYT.mostviewed,aes(section)) + geom_bar() +
+                                      coord_flip()
+                              
+
+# Information on the most viewed artical of the week.
+NYT.mostviewed %>% filter(view_rank==1)
+```
+ 
